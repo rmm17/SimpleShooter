@@ -28,6 +28,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	//BlueprintPure removes the execution pin on the blueprint and implies that we are not making changes to the game state in this function. 
+	UFUNCTION(BlueprintPure)
+	bool isDead() const;
+
 private:
 	void MoveForward(float AxisValue);
 	void LookUp(float AxisValue);
@@ -40,6 +46,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 100.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MaxHealth = 100.f;
+
+	UPROPERTY(VisibleAnywhere)
+	float Health = 0.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AGun> GunClass;

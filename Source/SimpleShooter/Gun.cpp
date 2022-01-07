@@ -8,6 +8,8 @@
 #define RootName TEXT("Root")
 #define MeshName TEXT("Mesh")
 
+#define OUT
+
 // Sets default values
 AGun::AGun()
 {
@@ -40,6 +42,36 @@ void AGun::PullTrigger()
 	if (!MuzzleFlash)
 		return;
 
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+		return;
+
+	AController* OwnerController = OwnerPawn->GetController();
+	if (!OwnerController)
+		return;
+
 	UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
+
+	FVector StartLocation;
+	FRotator StartRotation;
+	OwnerController->GetPlayerViewPoint(OUT StartLocation, OUT StartRotation);
+
+	FVector End = StartLocation + StartRotation.Vector() * MaxRange;
+
+	FHitResult Hit;
+	bool bSuccess = GetWorld()->LineTraceSingleByChannel(OUT Hit, StartLocation, End, ECollisionChannel::ECC_GameTraceChannel1);
+
+	if (bSuccess) {
+		FVector ShotDirection = -StartRotation.Vector();
+
+		if (ImpactParticles)
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, Hit.Location, ShotDirection.Rotation());
+		
+		if (auto ActorHit = Hit.GetActor())
+		{
+			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
+			ActorHit->TakeDamage(Damage, DamageEvent, OwnerController, this);
+		}
+	}
 }
 
