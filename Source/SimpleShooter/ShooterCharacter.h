@@ -32,7 +32,9 @@ public:
 
 	//BlueprintPure removes the execution pin on the blueprint and implies that we are not making changes to the game state in this function. 
 	UFUNCTION(BlueprintPure)
-	bool isDead() const;
+	bool IsDead() const;
+
+	void Shoot();
 
 private:
 	void MoveForward(float AxisValue);
@@ -42,7 +44,6 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
-	void Shoot();
 
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 100.f;

@@ -2,6 +2,7 @@
 
 
 #include "ShooterCharacter.h"
+#include "Components/CapsuleComponent.h"
 #include "Gun.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
@@ -60,7 +61,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
 }
 
-bool AShooterCharacter::isDead() const
+bool AShooterCharacter::IsDead() const
 {
 	return Health <= 0;
 }
@@ -115,7 +116,11 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
 
-	UE_LOG(LogTemp, Warning, TEXT("Health: %f"), Health);
+	if (IsDead())
+	{
+		DetachFromControllerPendingDestroy();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 
 	return DamageToApply;
 }
