@@ -2,6 +2,7 @@
 
 
 #include "ShooterCharacter.h"
+#include "Gun.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
 #define LookUpBinding TEXT("LookUp")
@@ -10,6 +11,8 @@
 #define LookRightBinding TEXT("LookRight")
 #define LookRightRateBinding TEXT("LookRightRate")
 #define JumpBinding TEXT("Jump")
+
+#define WeaponSocketName TEXT("WeaponSocket")
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()
@@ -23,7 +26,13 @@ AShooterCharacter::AShooterCharacter()
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
+
+	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
 	
+	Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
+	Gun->SetOwner(this);
 }
 
 // Called every frame
