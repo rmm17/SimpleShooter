@@ -39,21 +39,18 @@ void AGun::Tick(float DeltaTime)
 
 void AGun::PullTrigger()
 {
+	FHitResult Hit;
+	FVector ShotDirection;
 
 	AController* OwnerController = GetOwnerController();
 	if (!OwnerController)
 		return;
 
-	if (MuzzleFlash)
-		UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
-
-	FHitResult Hit;
-	FVector ShotDirection;
+	GenerateMuzzleEffects();
 
 	if (GunTrace(OUT Hit, OUT ShotDirection)) {
-		if (ImpactParticles)
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, Hit.Location, ShotDirection.Rotation());
-		
+		GenerateImpactEffects(Hit.Location, ShotDirection.Rotation());
+
 		if (auto ActorHit = Hit.GetActor())
 		{
 			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
@@ -81,6 +78,24 @@ bool AGun::GunTrace(FHitResult& Hit, FVector& ShotDirection)
 	Params.AddIgnoredActor(GetOwner());
 
 	return GetWorld()->LineTraceSingleByChannel(OUT Hit, StartLocation, End, ECollisionChannel::ECC_GameTraceChannel1, Params);
+}
+
+void AGun::GenerateMuzzleEffects() const
+{
+	if (MuzzleFlash)
+		UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
+
+	if (MuzzleSound)
+		UGameplayStatics::SpawnSoundAttached(MuzzleSound, Mesh, TEXT("MuzzleFlashSocket"));
+}
+
+void AGun::GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation) const
+{
+	if (ImpactParticles)
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactLocation, ImpactRotation);
+
+	if (ImpactSound)
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactLocation);
 }
 
 AController* AGun::GetOwnerController() const

@@ -40,11 +40,19 @@ private:
 	class UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* MuzzleSound;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* ImpactSound;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MaxRange = 1000.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float Damage = 10.f;
 
 	bool GunTrace(FHitResult& Hit, FVector& ShotDirection);
+	void GenerateMuzzleEffects() const;
+	void GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation) const;
 	class AController* GetOwnerController() const;
 };
