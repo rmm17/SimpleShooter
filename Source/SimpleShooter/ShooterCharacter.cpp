@@ -11,6 +11,7 @@
 #define LookRightBinding TEXT("LookRight")
 #define LookRightRateBinding TEXT("LookRightRate")
 #define JumpBinding TEXT("Jump")
+#define ShootBinding TEXT("Shoot")
 
 #define WeaponSocketName TEXT("WeaponSocket")
 
@@ -54,6 +55,15 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(LookRightBinding, this, &AShooterCharacter::LookRight);
 	PlayerInputComponent->BindAxis(LookRightRateBinding, this, &AShooterCharacter::LookRightRate);
 	PlayerInputComponent->BindAction(JumpBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::JumpAction);
+	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
+}
+
+void AShooterCharacter::Shoot()
+{
+	if (!Gun)
+		return;
+
+	Gun->PullTrigger();
 }
 
 void AShooterCharacter::MoveForward(float AxisValue)
