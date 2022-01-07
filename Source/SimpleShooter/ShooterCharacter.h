@@ -44,6 +44,7 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
+	void CheckIfDead();
 
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 100.f;

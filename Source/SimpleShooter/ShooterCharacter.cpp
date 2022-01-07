@@ -4,6 +4,7 @@
 #include "ShooterCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Gun.h"
+#include "SimpleShooterGameModeBase.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
 #define LookUpBinding TEXT("LookUp")
@@ -116,11 +117,20 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
 
+	CheckIfDead();
+
+	return DamageToApply;
+}
+
+void AShooterCharacter::CheckIfDead()
+{
 	if (IsDead())
 	{
+		ASimpleShooterGameModeBase* GameMode = GetWorld()->GetAuthGameMode<ASimpleShooterGameModeBase>();
+		if (GameMode)
+			GameMode->PawnKilled(this);
+
 		DetachFromControllerPendingDestroy();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-
-	return DamageToApply;
 }
