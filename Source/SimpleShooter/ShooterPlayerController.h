@@ -18,6 +18,12 @@ public:
 	virtual void GameHasEnded(class AActor* EndGameFocus = nullptr, bool bIsWinner = false) override;
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Screen Widgets")
+	TSubclassOf<class UUserWidget> WinGameWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Screen Widgets")
+	TSubclassOf<class UUserWidget> LostGameWidgetClass;
+
 	UPROPERTY(EditAnywhere)
 	float RestartDelay = 5.f;
 

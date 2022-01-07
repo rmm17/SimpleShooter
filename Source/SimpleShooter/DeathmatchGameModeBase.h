@@ -16,4 +16,8 @@ class SIMPLESHOOTER_API ADeathmatchGameModeBase : public ASimpleShooterGameModeB
 
 public:
 	virtual void PawnKilled(APawn* PawnKilled) override;
+
+private:
+	void CheckIfAllEnemiesDead();
+	void EndGame(bool bIsGameWon);
 };
