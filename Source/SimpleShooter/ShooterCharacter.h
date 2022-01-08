@@ -47,6 +47,8 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
+	void Zoom();
+	void Unzoom();
 	void CheckIfDead(FDamageEvent const& DamageEvent);
 
 	UPROPERTY(EditAnywhere)
@@ -63,4 +65,18 @@ private:
 
 	UPROPERTY()
 	AGun* Gun;
+
+	UPROPERTY()
+	class USpringArmComponent* SpringArmPtr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomedTargetArmLength = 150.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float ZoomInterpolationSpeed = 10.f;
+
+	UPROPERTY(VisibleAnywhere)
+	float OriginalTargetArmLength = 0.f; // used only to store the original target arm length from the SpringArmComponent, for unzooming
+
+	bool bIsZoomPressed = false;
 };

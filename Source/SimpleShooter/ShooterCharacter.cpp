@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Gun.h"
 #include "GunDamageType.h"
 #include "SimpleShooterGameModeBase.h"
@@ -15,6 +16,7 @@
 #define LookRightRateBinding TEXT("LookRightRate")
 #define JumpBinding TEXT("Jump")
 #define ShootBinding TEXT("Shoot")
+#define ZoomBinding TEXT("Zoom")
 
 #define WeaponSocketName TEXT("WeaponSocket")
 
@@ -37,8 +39,15 @@ void AShooterCharacter::BeginPlay()
 
 	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
 	
-	Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
-	Gun->SetOwner(this);
+	if (Gun)
+	{
+		Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
+		Gun->SetOwner(this);
+	}
+
+	SpringArmPtr = FindComponentByClass<USpringArmComponent>();
+	if (SpringArmPtr)
+		OriginalTargetArmLength = SpringArmPtr->TargetArmLength;
 }
 
 // Called every frame
@@ -46,6 +55,11 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (SpringArmPtr) {
+		if (bIsZoomPressed)
+			SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, ZoomedTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
+		else SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, OriginalTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
+	}
 }
 
 // Called to bind functionality to input
@@ -61,24 +75,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(LookRightRateBinding, this, &AShooterCharacter::LookRightRate);
 	PlayerInputComponent->BindAction(JumpBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::JumpAction);
 	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
-}
-
-bool AShooterCharacter::IsDead() const
-{
-	return Health <= 0;
-}
-
-float AShooterCharacter::GetHealthPercent() const
-{
-	return Health / MaxHealth;
-}
-
-void AShooterCharacter::Shoot()
-{
-	if (!Gun)
-		return;
-
-	Gun->PullTrigger();
+	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Zoom);
+	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Released, this, &AShooterCharacter::Unzoom);
 }
 
 void AShooterCharacter::MoveForward(float AxisValue)
@@ -114,6 +112,44 @@ void AShooterCharacter::LookRightRate(float AxisValue)
 void AShooterCharacter::JumpAction()
 {
 	Jump();
+}
+
+void AShooterCharacter::Shoot()
+{
+	if (!Gun)
+		return;
+
+	Gun->PullTrigger();
+}
+
+void AShooterCharacter::Zoom()
+{
+	bIsZoomPressed = true;
+	/*USpringArmComponent* SpringArmPtr = FindComponentByClass<USpringArmComponent>();
+
+	if (SpringArmPtr)
+		SpringArmPtr->TargetArmLength = 150.f;*/
+}
+
+void AShooterCharacter::Unzoom()
+{
+	bIsZoomPressed = false;
+	/**SpringArmComponent* SpringArmPtr = FindComponentByClass<USpringArmComponent>();
+
+	SpringArmPtr->
+
+	if (SpringArmPtr)
+		SpringArmPtr->TargetArmLength = 300.f;*/
+}
+
+bool AShooterCharacter::IsDead() const
+{
+	return Health <= 0;
+}
+
+float AShooterCharacter::GetHealthPercent() const
+{
+	return Health / MaxHealth;
 }
 
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
