@@ -49,6 +49,7 @@ private:
 	void JumpAction();
 	void Zoom();
 	void Unzoom();
+	void GamepadZoom();
 	void CheckIfDead(FDamageEvent const& DamageEvent);
 
 	UPROPERTY(EditAnywhere)
