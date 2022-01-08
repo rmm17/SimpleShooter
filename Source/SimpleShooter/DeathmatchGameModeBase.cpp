@@ -8,9 +8,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "ShooterAIController.h"
 
-void ADeathmatchGameModeBase::PawnKilled(APawn* PawnKilled)
+void ADeathmatchGameModeBase::PawnKilled(APawn* PawnKilled, bool bIsHeadShot)
 {
-	Super::PawnKilled(PawnKilled);
+	Super::PawnKilled(PawnKilled, bIsHeadShot);
 
 	if (!PawnKilled)
 		return;

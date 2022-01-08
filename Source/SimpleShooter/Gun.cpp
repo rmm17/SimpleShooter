@@ -4,9 +4,11 @@
 #include "Gun.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GunDamageType.h"
 
 #define RootName TEXT("Root")
 #define MeshName TEXT("Mesh")
+#define HeadBoneName TEXT("head")
 
 #define OUT
 
@@ -53,8 +55,22 @@ void AGun::PullTrigger()
 
 		if (auto ActorHit = Hit.GetActor())
 		{
-			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
-			ActorHit->TakeDamage(Damage, DamageEvent, OwnerController, this);
+			FPointDamageEvent DamageEvent;
+
+			float DamageTaken = 0.f;
+
+			if (Hit.BoneName.IsEqual(FName(HeadBoneName)))
+			{
+				DamageTaken = HeadShotDamage;
+				DamageEvent = FPointDamageEvent(DamageTaken, Hit, ShotDirection, HeadShotDamageTypeClass);
+			}
+			else
+			{
+				DamageTaken = RegularDamage;
+				DamageEvent = FPointDamageEvent(DamageTaken, Hit, ShotDirection, nullptr);
+			}
+			
+			ActorHit->TakeDamage(DamageTaken, DamageEvent, OwnerController, this);
 		}
 	}
 }

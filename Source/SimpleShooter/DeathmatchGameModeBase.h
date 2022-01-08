@@ -15,7 +15,7 @@ class SIMPLESHOOTER_API ADeathmatchGameModeBase : public ASimpleShooterGameModeB
 	GENERATED_BODY()
 
 public:
-	virtual void PawnKilled(APawn* PawnKilled) override;
+	virtual void PawnKilled(APawn* PawnKilled, bool bIsHeadShot) override;
 
 private:
 	void CheckIfAllEnemiesDead();

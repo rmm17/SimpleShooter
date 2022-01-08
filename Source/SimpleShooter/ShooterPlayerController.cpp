@@ -44,3 +44,33 @@ void AShooterPlayerController::GameHasEnded(class AActor* EndGameFocus, bool bIs
 
 	GetWorldTimerManager().SetTimer(RestartTimer, this, &AShooterPlayerController::RestartLevel, RestartDelay);
 }
+
+void AShooterPlayerController::ShowHeadshotUI()
+{
+	if (HeadshotSound)
+		ClientPlaySound(HeadshotSound);
+
+	if (HeadshotWidgetClass)
+	{
+		//Removes in case another headshot happens during the timeline (avoids UI getting stuck perpetually).
+		HideHeadshotUI();
+
+		HeadshotScreen = CreateWidget(this, HeadshotWidgetClass);
+
+		if (HeadshotScreen)
+		{
+			HeadshotScreen->AddToViewport();
+
+			GetWorldTimerManager().SetTimer(HeadshotTimer, this, &AShooterPlayerController::HideHeadshotUI, HeadshotScreenLifeTime);
+		}
+	}
+}
+
+void AShooterPlayerController::HideHeadshotUI()
+{
+	if (HeadshotScreen)
+	{
+		HeadshotScreen->RemoveFromViewport();
+		HeadshotScreen = nullptr;
+	}
+}

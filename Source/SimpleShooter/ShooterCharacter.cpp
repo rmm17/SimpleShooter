@@ -4,6 +4,7 @@
 #include "ShooterCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Gun.h"
+#include "GunDamageType.h"
 #include "SimpleShooterGameModeBase.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
@@ -119,21 +120,25 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	UE_LOG(LogTemp, Warning, TEXT("Damage to apply: %f"), DamageToApply);
+
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
 
-	CheckIfDead();
+	CheckIfDead(DamageEvent);
 
 	return DamageToApply;
 }
 
-void AShooterCharacter::CheckIfDead()
+void AShooterCharacter::CheckIfDead(FDamageEvent const& DamageEvent)
 {
 	if (IsDead())
 	{
 		ASimpleShooterGameModeBase* GameMode = GetWorld()->GetAuthGameMode<ASimpleShooterGameModeBase>();
+		UGunDamageType* GunDamageType = Cast<UGunDamageType>(DamageEvent.DamageTypeClass.GetDefaultObject());
+
 		if (GameMode)
-			GameMode->PawnKilled(this);
+			GameMode->PawnKilled(this, GunDamageType ? true : false);
 
 		DetachFromControllerPendingDestroy();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

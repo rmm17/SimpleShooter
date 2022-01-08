@@ -17,6 +17,9 @@ class SIMPLESHOOTER_API AShooterPlayerController : public APlayerController
 public:
 	virtual void GameHasEnded(class AActor* EndGameFocus = nullptr, bool bIsWinner = false) override;
 
+	void ShowHeadshotUI();
+	void HideHeadshotUI();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -30,11 +33,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Screen Widgets")
 	TSubclassOf<class UUserWidget> LostGameWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Screen Widgets")
+	TSubclassOf<class UUserWidget> HeadshotWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* HeadshotSound;
+
 	UPROPERTY(EditAnywhere)
 	float RestartDelay = 5.f;
+
+	UPROPERTY(EditAnywhere)
+	float HeadshotScreenLifeTime = 1.f;
 
 	UPROPERTY()
 	class UUserWidget* HUDScreen;
 
+	UPROPERTY()
+	UUserWidget* HeadshotScreen;
+
 	FTimerHandle RestartTimer;
+	FTimerHandle HeadshotTimer;
 };

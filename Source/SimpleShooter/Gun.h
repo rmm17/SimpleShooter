@@ -46,10 +46,16 @@ private:
 	class USoundBase* ImpactSound;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float MaxRange = 1000.f;
+	class TSubclassOf<class UDamageType> HeadShotDamageTypeClass;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float Damage = 10.f;
+	float MaxRange = 3000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float RegularDamage = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float HeadShotDamage = 100.f;
 
 	bool GunTrace(FHitResult& Hit, FVector& ShotDirection);
 	void GenerateMuzzleEffects() const;
