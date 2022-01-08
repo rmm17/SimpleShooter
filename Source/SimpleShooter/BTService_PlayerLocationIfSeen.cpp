@@ -22,8 +22,6 @@ void UBTService_PlayerLocationIfSeen::TickNode(UBehaviorTreeComponent& OwnerComp
 	if (!ShooterController || !PlayerPawn || !Blackboard)
 		return;
 
-	GetSelectedBlackboardKey();
-
 	if (ShooterController->LineOfSightTo(PlayerPawn))
 		Blackboard->SetValueAsObject(GetSelectedBlackboardKey(), PlayerPawn);
 	else Blackboard->ClearValue(GetSelectedBlackboardKey());
