@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Gun.h"
 #include "GunDamageType.h"
+#include "Kismet/GameplayStatics.h"
 #include "SimpleShooterGameModeBase.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
@@ -16,6 +17,7 @@
 #define LookRightRateBinding TEXT("LookRightRate")
 #define JumpBinding TEXT("Jump")
 #define ShootBinding TEXT("Shoot")
+#define ReloadBinding TEXT("Reload")
 #define ZoomBinding TEXT("Zoom")
 #define GamepadZoomBinding TEXT("GamepadZoom")
 
@@ -36,14 +38,14 @@ void AShooterCharacter::BeginPlay()
 
 	Health = MaxHealth;
 
-	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
+	Weapon = GetWorld()->SpawnActor<AGun>(GunClass);
 
 	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
 	
-	if (Gun)
+	if (Weapon)
 	{
-		Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
-		Gun->SetOwner(this);
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
+		Weapon->SetOwner(this);
 	}
 
 	SpringArmPtr = FindComponentByClass<USpringArmComponent>();
@@ -76,6 +78,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(LookRightRateBinding, this, &AShooterCharacter::LookRightRate);
 	PlayerInputComponent->BindAction(JumpBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::JumpAction);
 	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
+	PlayerInputComponent->BindAction(ReloadBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Reload);
 	
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Zoom);
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Released, this, &AShooterCharacter::Unzoom);
@@ -120,10 +123,37 @@ void AShooterCharacter::JumpAction()
 
 void AShooterCharacter::Shoot()
 {
-	if (!Gun)
+	if (!Weapon)
 		return;
 
-	Gun->PullTrigger();
+	Weapon->PullTrigger();
+}
+
+void AShooterCharacter::Reload()
+{
+	if (!Weapon)
+		return;
+
+	if (bIsReloading || Weapon->GetCurrentAmmo() == Weapon->GetMaxAmmo())
+		return;
+	
+	bIsReloading = true;
+
+	DisableInput(UGameplayStatics::GetPlayerController(this, 0));
+
+	GetWorld()->GetTimerManager().SetTimer(OUT ReloadTimer, this, &AShooterCharacter::ReloadComplete, 2.0f, false);
+}
+
+void AShooterCharacter::ReloadComplete()
+{
+	bIsReloading = false;
+
+	EnableInput(UGameplayStatics::GetPlayerController(this, 0));
+
+	if (!Weapon)
+		return;
+
+	Weapon->Reload();
 }
 
 void AShooterCharacter::Zoom()
@@ -146,9 +176,30 @@ bool AShooterCharacter::IsDead() const
 	return Health <= 0;
 }
 
+bool AShooterCharacter::IsReloading() const
+{
+	return bIsReloading;
+}
+
 float AShooterCharacter::GetHealthPercent() const
 {
 	return Health / MaxHealth;
+}
+
+int32 AShooterCharacter::GetCurrentAmmo() const
+{
+	if (!Weapon)
+		return 0;
+
+	return Weapon->GetCurrentAmmo();
+}
+
+int32 AShooterCharacter::GetMaxAmmo() const
+{
+	if (!Weapon)
+		return 0;
+
+	return Weapon->GetMaxAmmo();
 }
 
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

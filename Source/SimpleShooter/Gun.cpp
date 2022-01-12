@@ -41,6 +41,15 @@ void AGun::Tick(float DeltaTime)
 
 void AGun::PullTrigger()
 {
+	Super::PullTrigger();
+
+	if (GetCurrentAmmo() <= 0)
+	{
+		if (EmptyCartridgeSound)
+			UGameplayStatics::SpawnSoundAttached(EmptyCartridgeSound, Mesh, TEXT("MuzzleFlashSocket"));
+		return;
+	}
+
 	FHitResult Hit;
 	FVector ShotDirection;
 

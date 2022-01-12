@@ -35,9 +35,20 @@ public:
 	bool IsDead() const;
 
 	UFUNCTION(BlueprintPure)
+	bool IsReloading() const;
+
+	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
 
+	UFUNCTION(BlueprintPure)
+	int32 GetCurrentAmmo() const;
+
+	UFUNCTION(BlueprintPure)
+	int32 GetMaxAmmo() const;
+
 	void Shoot();
+
+	void ReloadComplete();
 
 private:
 	void MoveForward(float AxisValue);
@@ -47,6 +58,7 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
+	void Reload();
 	void Zoom();
 	void Unzoom();
 	void GamepadZoom();
@@ -65,7 +77,7 @@ private:
 	TSubclassOf<AGun> GunClass;
 
 	UPROPERTY()
-	AGun* Gun;
+	AGun* Weapon;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmPtr;
@@ -80,4 +92,8 @@ private:
 	float OriginalTargetArmLength = 0.f; // used only to store the original target arm length from the SpringArmComponent, for unzooming
 
 	bool bIsZoomPressed = false;
+
+	bool bIsReloading = false;
+
+	FTimerHandle ReloadTimer;
 };

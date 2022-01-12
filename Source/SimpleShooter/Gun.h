@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Weapon.h"
 #include "Gun.generated.h"
 
 UCLASS()
-class SIMPLESHOOTER_API AGun : public AActor
+class SIMPLESHOOTER_API AGun : public AWeapon
 {
 	GENERATED_BODY()
 	
@@ -15,7 +16,7 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	void PullTrigger();
+	virtual void PullTrigger() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,6 +45,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class USoundBase* ImpactSound;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* EmptyCartridgeSound;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class TSubclassOf<class UDamageType> HeadShotDamageTypeClass;
