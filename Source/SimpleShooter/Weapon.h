@@ -24,6 +24,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	bool AimTrace(FHitResult& Hit, FVector& ShotDirection);
+	class AController* GetOwnerController() const;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -36,10 +38,16 @@ protected:
 	class USkeletalMeshComponent* Mesh;
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* EmptyCartridgeSound;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	int32 MaxAmmo = 32;
 
 	UPROPERTY(VisibleAnywhere, Category = "Combat")
 	int32 CurrentAmmo;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float MaxRange = 3000.f;
 
 };

@@ -36,8 +36,6 @@ void AGun::PullTrigger()
 
 	if (GetCurrentAmmo() <= 0)
 	{
-		if (EmptyCartridgeSound)
-			UGameplayStatics::SpawnSoundAttached(EmptyCartridgeSound, Mesh, TEXT("MuzzleFlashSocket"));
 		return;
 	}
 
@@ -50,7 +48,7 @@ void AGun::PullTrigger()
 
 	GenerateMuzzleEffects();
 
-	if (GunTrace(OUT Hit, OUT ShotDirection)) {
+	if (AimTrace(OUT Hit, OUT ShotDirection)) {
 		GenerateImpactEffects(Hit.Location, ShotDirection.Rotation());
 
 		if (auto ActorHit = Hit.GetActor())
@@ -75,27 +73,6 @@ void AGun::PullTrigger()
 	}
 }
 
-bool AGun::GunTrace(FHitResult& Hit, FVector& ShotDirection)
-{
-	FVector StartLocation;
-	FRotator StartRotation;
-
-	AController* OwnerController = GetOwnerController();
-	if (!OwnerController)
-		return false;
-
-	OwnerController->GetPlayerViewPoint(OUT StartLocation, OUT StartRotation);
-	ShotDirection = -StartRotation.Vector();
-
-	FVector End = StartLocation + StartRotation.Vector() * MaxRange;
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(GetOwner());
-
-	return GetWorld()->LineTraceSingleByChannel(OUT Hit, StartLocation, End, ECollisionChannel::ECC_GameTraceChannel1, Params);
-}
-
 void AGun::GenerateMuzzleEffects() const
 {
 	if (MuzzleFlash)
@@ -112,14 +89,5 @@ void AGun::GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation
 
 	if (ImpactSound)
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactLocation);
-}
-
-AController* AGun::GetOwnerController() const
-{
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
-		return nullptr;
-
-	return OwnerPawn->GetController();
 }
 

@@ -40,13 +40,7 @@ private:
 	class USoundBase* ImpactSound;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	class USoundBase* EmptyCartridgeSound;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
 	class TSubclassOf<class UDamageType> HeadShotDamageTypeClass;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float MaxRange = 3000.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float RegularDamage = 20.f;
@@ -54,8 +48,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float HeadShotDamage = 100.f;
 
-	bool GunTrace(FHitResult& Hit, FVector& ShotDirection);
 	void GenerateMuzzleEffects() const;
 	void GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation) const;
-	class AController* GetOwnerController() const;
 };

@@ -2,6 +2,7 @@
 
 
 #include "Weapon.h"
+#include "Kismet/GameplayStatics.h"
 
 #define RootName TEXT("Root")
 #define MeshName TEXT("Mesh")
@@ -39,6 +40,9 @@ void AWeapon::PullTrigger()
 {
 	if (CurrentAmmo > 0)
 		CurrentAmmo--;
+	else if (EmptyCartridgeSound)
+		UGameplayStatics::SpawnSoundAttached(EmptyCartridgeSound, Mesh, TEXT("MuzzleFlashSocket"));
+
 }
 
 void AWeapon::Reload()
@@ -54,5 +58,35 @@ int32 AWeapon::GetCurrentAmmo()
 int32 AWeapon::GetMaxAmmo()
 {
 	return MaxAmmo;
+}
+
+bool AWeapon::AimTrace(FHitResult& Hit, FVector& ShotDirection)
+{
+	FVector StartLocation;
+	FRotator StartRotation;
+
+	AController* OwnerController = GetOwnerController();
+	if (!OwnerController)
+		return false;
+
+	OwnerController->GetPlayerViewPoint(OUT StartLocation, OUT StartRotation);
+	ShotDirection = -StartRotation.Vector();
+
+	FVector End = StartLocation + StartRotation.Vector() * MaxRange;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.AddIgnoredActor(GetOwner());
+
+	return GetWorld()->LineTraceSingleByChannel(OUT Hit, StartLocation, End, ECollisionChannel::ECC_GameTraceChannel1, Params);
+}
+
+AController* AWeapon::GetOwnerController() const
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+		return nullptr;
+
+	return OwnerPawn->GetController();
 }
 

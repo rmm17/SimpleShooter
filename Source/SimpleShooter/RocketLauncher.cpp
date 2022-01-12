@@ -3,8 +3,11 @@
 
 #include "RocketLauncher.h"
 #include "Components/SceneComponent.h"
+#include "RocketProjectile.h"
 
 #define SpawnProjectileName TEXT("Spawn Projectile")
+
+#define OUT
 
 // Sets default values
 ARocketLauncher::ARocketLauncher()
@@ -14,4 +17,31 @@ ARocketLauncher::ARocketLauncher()
 
 	SpawnProjectileComp = CreateDefaultSubobject<USceneComponent>(SpawnProjectileName);
 	SpawnProjectileComp->SetupAttachment(Root);
+}
+
+void ARocketLauncher::PullTrigger()
+{
+	Super::PullTrigger();
+
+	if (GetCurrentAmmo() <= 0)
+		return;
+
+	if (!RocketProjectileClass)
+		return;
+
+	FHitResult Hit;
+	FVector ShotDirection;
+	
+	AimTrace(OUT Hit, OUT ShotDirection);
+
+	FRotator SpawnRotation = (Hit.Location - SpawnProjectileComp->GetComponentLocation()).Rotation();
+
+	ARocketProjectile* Projectile = GetWorld()->SpawnActor<ARocketProjectile>(
+		RocketProjectileClass,
+		SpawnProjectileComp->GetComponentLocation(),
+		SpawnRotation
+	);
+	
+	if (Projectile)
+		Projectile->SetOwner(GetOwner());
 }

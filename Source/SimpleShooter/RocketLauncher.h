@@ -18,7 +18,14 @@ public:
 	// Sets default values for this actor's properties
 	ARocketLauncher();
 
+	virtual void PullTrigger() override;
+
 private:
+	void RocketTrace();
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class USceneComponent* SpawnProjectileComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<class ARocketProjectile> RocketProjectileClass;
 };
