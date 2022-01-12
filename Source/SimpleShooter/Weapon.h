@@ -28,8 +28,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USceneComponent* Root;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USkeletalMeshComponent* Mesh;
+
+private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	int32 MaxAmmo = 32;
 

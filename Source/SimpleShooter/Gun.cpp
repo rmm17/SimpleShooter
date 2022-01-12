@@ -6,8 +6,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "GunDamageType.h"
 
-#define RootName TEXT("Root")
-#define MeshName TEXT("Mesh")
 #define HeadBoneName TEXT("head")
 
 #define OUT
@@ -17,13 +15,6 @@ AGun::AGun()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	Root = CreateDefaultSubobject<USceneComponent>(RootName);
-
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(MeshName);
-	Mesh->SetupAttachment(Root);
-
-	SetRootComponent(Root);
 }
 
 // Called when the game starts or when spawned

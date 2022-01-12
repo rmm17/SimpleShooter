@@ -7,6 +7,8 @@
 #include "ShooterCharacter.generated.h"
 
 class AGun;
+class ARocketLauncher;
+class AWeapon;
 
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
@@ -51,6 +53,7 @@ public:
 	void ReloadComplete();
 
 private:
+	void SetupWeaponList();
 	void MoveForward(float AxisValue);
 	void LookUp(float AxisValue);
 	void LookUpRate(float AxisValue);
@@ -59,6 +62,7 @@ private:
 	void LookRightRate(float AxisValue);
 	void JumpAction();
 	void Reload();
+	void SelectWeapon(int32 Index);
 	void Zoom();
 	void Unzoom();
 	void GamepadZoom();
@@ -76,8 +80,13 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AGun> GunClass;
 
+	UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<ARocketLauncher> RocketLauncherClass;
+
 	UPROPERTY()
-	AGun* Weapon;
+	AWeapon* Weapon;
+
+	TMap<int32, AWeapon*> WeaponList;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmPtr;

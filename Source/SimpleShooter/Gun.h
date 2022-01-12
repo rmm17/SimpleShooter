@@ -27,13 +27,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class USceneComponent* Root;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class USkeletalMeshComponent* Mesh;
-
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class UParticleSystem* MuzzleFlash;
 	

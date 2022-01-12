@@ -3,12 +3,21 @@
 
 #include "Weapon.h"
 
+#define RootName TEXT("Root")
+#define MeshName TEXT("Mesh")
+
 // Sets default values
 AWeapon::AWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	Root = CreateDefaultSubobject<USceneComponent>(RootName);
+
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(MeshName);
+	Mesh->SetupAttachment(Root);
+
+	SetRootComponent(Root);
 }
 
 // Called when the game starts or when spawned

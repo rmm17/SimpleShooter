@@ -7,6 +7,7 @@
 #include "Gun.h"
 #include "GunDamageType.h"
 #include "Kismet/GameplayStatics.h"
+#include "RocketLauncher.h"
 #include "SimpleShooterGameModeBase.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
@@ -18,10 +19,15 @@
 #define JumpBinding TEXT("Jump")
 #define ShootBinding TEXT("Shoot")
 #define ReloadBinding TEXT("Reload")
+#define SelectWeapon1Binding TEXT("SelectWeapon1")
+#define SelectWeapon2Binding TEXT("SelectWeapon2")
 #define ZoomBinding TEXT("Zoom")
 #define GamepadZoomBinding TEXT("GamepadZoom")
 
 #define WeaponSocketName TEXT("WeaponSocket")
+
+#define GunIndex 0
+#define RocketLauncherIndex 1
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()
@@ -36,17 +42,9 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetupWeaponList();
+
 	Health = MaxHealth;
-
-	Weapon = GetWorld()->SpawnActor<AGun>(GunClass);
-
-	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
-	
-	if (Weapon)
-	{
-		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
-		Weapon->SetOwner(this);
-	}
 
 	SpringArmPtr = FindComponentByClass<USpringArmComponent>();
 	if (SpringArmPtr)
@@ -65,6 +63,27 @@ void AShooterCharacter::Tick(float DeltaTime)
 	}
 }
 
+// Called to prepare weapons available to the player at the start of game
+void AShooterCharacter::SetupWeaponList()
+{
+	WeaponList.Add(GunIndex, GetWorld()->SpawnActor<AGun>(GunClass));
+	WeaponList.Add(RocketLauncherIndex, GetWorld()->SpawnActor<ARocketLauncher>(RocketLauncherClass));
+
+	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
+
+	for (TPair<int32, AWeapon*> Element : WeaponList)
+	{
+		if (!Element.Value)
+			continue;
+
+		Element.Value->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
+		Element.Value->SetOwner(this);
+		Element.Value->SetActorHiddenInGame(Element.Key != 0);
+	}
+
+	Weapon = WeaponList[0];
+}
+
 // Called to bind functionality to input
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -79,6 +98,10 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(JumpBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::JumpAction);
 	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
 	PlayerInputComponent->BindAction(ReloadBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Reload);
+
+	DECLARE_DELEGATE_OneParam(FSelectWeaponDelegate, const int32)
+	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon1Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, GunIndex);
+	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon2Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, RocketLauncherIndex);
 	
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Zoom);
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Released, this, &AShooterCharacter::Unzoom);
@@ -154,6 +177,17 @@ void AShooterCharacter::ReloadComplete()
 		return;
 
 	Weapon->Reload();
+}
+
+void AShooterCharacter::SelectWeapon(int32 Index)
+{
+	if (Weapon)
+		Weapon->SetActorHiddenInGame(true);
+
+	Weapon = WeaponList[Index];
+	
+	if (Weapon)
+		Weapon->SetActorHiddenInGame(false);
 }
 
 void AShooterCharacter::Zoom()
