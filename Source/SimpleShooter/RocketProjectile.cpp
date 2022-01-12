@@ -41,6 +41,9 @@ void ARocketProjectile::BeginPlay()
 	Super::BeginPlay();
 
 	StaticMeshComp->OnComponentHit.AddDynamic(this, &ARocketProjectile::OnHit);
+
+	if (RocketLaunchSound)
+		UGameplayStatics::PlaySoundAtLocation(this, RocketLaunchSound, GetActorLocation());
 }
 
 void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -52,10 +55,12 @@ void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	IgnoreActors.Add(this);
 	IgnoreActors.Add(GetOwner());
 
+	FVector ActorLocation = GetActorLocation();
+
 	UGameplayStatics::ApplyRadialDamage(
 		this,
 		50.f,
-		GetActorLocation(),
+		ActorLocation,
 		2000.f,
 		UDamageType::StaticClass(),
 		IgnoreActors,
@@ -68,7 +73,10 @@ void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	if (HitParticles)
 	{
 		FVector ParticlesScale(0.25f);
-		UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, GetActorLocation(), GetActorRotation(), ParticlesScale);
+		UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, ActorLocation, GetActorRotation(), ParticlesScale);
 	}
+
+	if (RocketExplosionSound)
+		UGameplayStatics::PlaySoundAtLocation(this, RocketExplosionSound, ActorLocation);
 }
 
