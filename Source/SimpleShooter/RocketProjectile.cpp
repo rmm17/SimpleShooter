@@ -5,10 +5,13 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "ShooterCharacter.h"
 
 #define StaticMeshName TEXT("Static Mesh")
 #define ProjectileMovName TEXT("Projectile Movement")
+#define SmokeTrailName TEXT("Smoke Trail")
 
 // Sets default values
 ARocketProjectile::ARocketProjectile()
@@ -19,7 +22,11 @@ ARocketProjectile::ARocketProjectile()
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(StaticMeshName);
 	RootComponent = StaticMeshComp;
 
+	ParticleSystemComp = CreateDefaultSubobject<UParticleSystemComponent>(SmokeTrailName);
+	RootComponent->SetupAttachment(ParticleSystemComp);
+
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(ProjectileMovName);
+
 
 	if (!ProjectileMovementComp)
 		return;
@@ -57,5 +64,11 @@ void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	);
 
 	Destroy();
+
+	if (HitParticles)
+	{
+		FVector ParticlesScale(0.25f);
+		UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, GetActorLocation(), GetActorRotation(), ParticlesScale);
+	}
 }
 
