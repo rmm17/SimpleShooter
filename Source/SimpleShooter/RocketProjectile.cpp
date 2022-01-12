@@ -4,6 +4,7 @@
 #include "RocketProjectile.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "ShooterCharacter.h"
 
 #define StaticMeshName TEXT("Static Mesh")
@@ -37,17 +38,23 @@ void ARocketProjectile::BeginPlay()
 
 void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Rocket hit"));
-
 	AShooterCharacter* CharacterHit = Cast<AShooterCharacter>(OtherActor);
 
+	TArray<AActor*> IgnoreActors;
 
+	IgnoreActors.Add(this);
+	IgnoreActors.Add(GetOwner());
 
-	/*if (CharacterHit)
-	{
-		FPointDamageEvent DamageEvent = FPointDamageEvent(50.f, Hit, NormalImpulse, nullptr);
-		CharacterHit->TakeDamage(50.f, DamageEvent, GetOwner()->GetInstigatorController(), GetOwner());
-	}*/
+	UGameplayStatics::ApplyRadialDamage(
+		this,
+		50.f,
+		GetActorLocation(),
+		2000.f,
+		UDamageType::StaticClass(),
+		IgnoreActors,
+		this,
+		GetOwner()->GetInstigatorController()
+	);
 
 	Destroy();
 }

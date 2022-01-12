@@ -240,7 +240,10 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	UE_LOG(LogTemp, Warning, TEXT("Damage to apply: %f"), DamageToApply);
+	//UE_LOG(LogTemp, Warning, TEXT("Take Damage: Actor %s damaged by %f"), *this->GetName(), DamageToApply);
+
+	if (DamageToApply <= 0)
+		return 0;
 
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
