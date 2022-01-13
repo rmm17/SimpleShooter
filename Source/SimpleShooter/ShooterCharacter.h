@@ -50,7 +50,7 @@ public:
 	int32 GetMaxAmmo() const;
 
 	void Shoot();
-
+	void Reload();
 	void ReloadComplete();
 
 private:
@@ -62,7 +62,6 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
-	void Reload();
 	void SelectWeapon(int32 Index);
 	void Zoom();
 	void Unzoom();
