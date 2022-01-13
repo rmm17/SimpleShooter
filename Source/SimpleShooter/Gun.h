@@ -16,7 +16,7 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	virtual void PullTrigger() override;
+	virtual bool PullTrigger() override;
 
 protected:
 	// Called when the game starts or when spawned

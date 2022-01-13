@@ -19,15 +19,15 @@ ARocketLauncher::ARocketLauncher()
 	SpawnProjectileComp->SetupAttachment(Root);
 }
 
-void ARocketLauncher::PullTrigger()
+bool ARocketLauncher::PullTrigger()
 {
-	Super::PullTrigger();
+	bool bSuccess = Super::PullTrigger();
 
-	if (GetCurrentAmmo() <= 0)
-		return;
+	if (!bSuccess)
+		return false;
 
 	if (!RocketProjectileClass)
-		return;
+		return false;
 
 	FHitResult Hit;
 	FVector ShotDirection;
@@ -44,4 +44,6 @@ void ARocketLauncher::PullTrigger()
 	
 	if (Projectile)
 		Projectile->SetOwner(GetOwner());
+
+	return true;
 }

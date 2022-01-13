@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
-	virtual void PullTrigger();
+	virtual bool PullTrigger();
 	void Reload();
 	int32 GetMaxAmmo();
 	int32 GetCurrentAmmo();

@@ -36,13 +36,16 @@ void AWeapon::Tick(float DeltaTime)
 
 }
 
-void AWeapon::PullTrigger()
+bool AWeapon::PullTrigger()
 {
-	if (CurrentAmmo > 0)
-		CurrentAmmo--;
+	bool bSuccess = CurrentAmmo > 0;
+
+	if (bSuccess)
+		--CurrentAmmo;
 	else if (EmptyCartridgeSound)
 		UGameplayStatics::SpawnSoundAttached(EmptyCartridgeSound, Mesh, TEXT("MuzzleFlashSocket"));
 
+	return bSuccess;
 }
 
 void AWeapon::Reload()

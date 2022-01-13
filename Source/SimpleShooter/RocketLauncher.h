@@ -18,7 +18,7 @@ public:
 	// Sets default values for this actor's properties
 	ARocketLauncher();
 
-	virtual void PullTrigger() override;
+	virtual bool PullTrigger() override;
 
 private:
 	void RocketTrace();

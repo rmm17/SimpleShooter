@@ -30,21 +30,19 @@ void AGun::Tick(float DeltaTime)
 
 }
 
-void AGun::PullTrigger()
+bool AGun::PullTrigger()
 {
-	Super::PullTrigger();
-
-	if (GetCurrentAmmo() <= 0)
-	{
-		return;
-	}
+	bool bSuccess = Super::PullTrigger();
 
 	FHitResult Hit;
 	FVector ShotDirection;
 
+	if (!bSuccess)
+		return false;
+
 	AController* OwnerController = GetOwnerController();
 	if (!OwnerController)
-		return;
+		return false;
 
 	GenerateMuzzleEffects();
 
@@ -71,6 +69,8 @@ void AGun::PullTrigger()
 			ActorHit->TakeDamage(DamageTaken, DamageEvent, OwnerController, this);
 		}
 	}
+
+	return true;
 }
 
 void AGun::GenerateMuzzleEffects() const

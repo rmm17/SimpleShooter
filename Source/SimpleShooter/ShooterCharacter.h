@@ -66,6 +66,7 @@ private:
 	void LookRightRate(float AxisValue);
 	void JumpAction();
 	void SelectWeapon(int32 Index);
+	void SelectWeaponWithScroll(float AxisValue);
 	void Zoom();
 	void Unzoom();
 	void GamepadZoom();

@@ -23,6 +23,7 @@
 #define ReloadBinding TEXT("Reload")
 #define SelectWeapon1Binding TEXT("SelectWeapon1")
 #define SelectWeapon2Binding TEXT("SelectWeapon2")
+#define SelectWeaponScroll TEXT("SelectWeaponScroll")
 #define ZoomBinding TEXT("Zoom")
 #define GamepadZoomBinding TEXT("GamepadZoom")
 
@@ -109,6 +110,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	DECLARE_DELEGATE_OneParam(FSelectWeaponDelegate, const int32)
 	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon1Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, GunIndex);
 	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon2Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, RocketLauncherIndex);
+	PlayerInputComponent->BindAxis(SelectWeaponScroll, this, &AShooterCharacter::SelectWeaponWithScroll);
 	
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Zoom);
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Released, this, &AShooterCharacter::Unzoom);
@@ -201,6 +203,18 @@ void AShooterCharacter::SelectWeapon(int32 Index)
 	
 	if (Weapon)
 		Weapon->SetActorHiddenInGame(false);
+}
+
+void AShooterCharacter::SelectWeaponWithScroll(float AxisValue)
+{
+	if (!Weapon)
+		return;
+
+	const int32* Index = WeaponList.FindKey(Weapon);
+
+	uint32 NewIndex = FMath::Abs((*Index + FMath::CeilToInt(AxisValue)) % WeaponList.Num());
+
+	SelectWeapon(NewIndex);
 }
 
 void AShooterCharacter::Zoom()
