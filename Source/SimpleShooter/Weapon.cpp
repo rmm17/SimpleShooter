@@ -48,6 +48,9 @@ void AWeapon::PullTrigger()
 void AWeapon::Reload()
 {
 	CurrentAmmo = MaxAmmo;
+
+	if (ReloadSound)
+		UGameplayStatics::SpawnSoundAttached(ReloadSound, Mesh, TEXT("MuzzleFlashSocket"));
 }
 
 int32 AWeapon::GetCurrentAmmo()
@@ -58,6 +61,11 @@ int32 AWeapon::GetCurrentAmmo()
 int32 AWeapon::GetMaxAmmo()
 {
 	return MaxAmmo;
+}
+
+float AWeapon::GetReloadTime()
+{
+	return ReloadTime;
 }
 
 bool AWeapon::AimTrace(FHitResult& Hit, FVector& ShotDirection)

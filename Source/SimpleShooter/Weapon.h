@@ -19,6 +19,7 @@ public:
 	void Reload();
 	int32 GetMaxAmmo();
 	int32 GetCurrentAmmo();
+	float GetReloadTime();
 
 protected:
 	// Called when the game starts or when spawned
@@ -41,6 +42,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class USoundBase* EmptyCartridgeSound;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* ReloadSound;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	int32 MaxAmmo = 32;
 
@@ -49,5 +53,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MaxRange = 3000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ReloadTime = 1.f;
 
 };

@@ -164,7 +164,13 @@ void AShooterCharacter::Reload()
 
 	DisableInput(UGameplayStatics::GetPlayerController(this, 0));
 
-	GetWorld()->GetTimerManager().SetTimer(OUT ReloadTimer, this, &AShooterCharacter::ReloadComplete, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(
+		OUT ReloadTimer, 
+		this, 
+		&AShooterCharacter::ReloadComplete,
+		Weapon->GetReloadTime(),
+		false
+	);
 }
 
 void AShooterCharacter::ReloadComplete()
