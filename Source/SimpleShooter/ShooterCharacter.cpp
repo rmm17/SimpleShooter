@@ -3,9 +3,11 @@
 
 #include "ShooterCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gun.h"
 #include "GunDamageType.h"
+#include "HealthWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "RocketLauncher.h"
 #include "SimpleShooterGameModeBase.h"
@@ -49,6 +51,9 @@ void AShooterCharacter::BeginPlay()
 	SpringArmPtr = FindComponentByClass<USpringArmComponent>();
 	if (SpringArmPtr)
 		OriginalTargetArmLength = SpringArmPtr->TargetArmLength;
+
+	HealthWidgetComp = FindComponentByClass<UWidgetComponent>();
+	UpdateHealthWidget();
 }
 
 // Called every frame
@@ -61,6 +66,8 @@ void AShooterCharacter::Tick(float DeltaTime)
 			SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, ZoomedTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
 		else SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, OriginalTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
 	}
+
+	RotateHealthWidget();
 }
 
 // Called to prepare weapons available to the player at the start of game
@@ -259,6 +266,8 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
 
+	UpdateHealthWidget();
+
 	CheckIfDead(DamageEvent);
 
 	return DamageToApply;
@@ -277,4 +286,39 @@ void AShooterCharacter::CheckIfDead(FDamageEvent const& DamageEvent)
 		DetachFromControllerPendingDestroy();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
+
+void AShooterCharacter::UpdateHealthWidget()
+{
+	if (!HealthWidgetComp)
+		return;
+
+	UHealthWidget* HealthWidget = Cast<UHealthWidget>(HealthWidgetComp->GetUserWidgetObject());
+
+	if (HealthWidget)
+	{
+		float HealthPercent = GetHealthPercent();
+		HealthWidget->UpdateHealthPercent(HealthPercent);
+
+		HealthWidgetComp->SetHiddenInGame(HealthPercent <= 0.f);
+	}
+}
+
+void AShooterCharacter::RotateHealthWidget()
+{
+	if (!HealthWidgetComp)
+		return;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	
+	if (!PlayerController)
+		return;
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PlayerController->GetPlayerViewPoint(OUT CameraLocation, OUT CameraRotation);
+
+	FVector ToTarget = CameraLocation - HealthWidgetComp->GetComponentLocation();
+	FRotator LookAtRotation = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
+	HealthWidgetComp->SetWorldRotation(LookAtRotation);
 }

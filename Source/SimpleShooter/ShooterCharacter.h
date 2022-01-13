@@ -70,6 +70,8 @@ private:
 	void Unzoom();
 	void GamepadZoom();
 	void CheckIfDead(FDamageEvent const& DamageEvent);
+	void UpdateHealthWidget();
+	void RotateHealthWidget();
 
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 100.f;
@@ -93,6 +95,9 @@ private:
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmPtr;
+
+	UPROPERTY()
+	class UWidgetComponent* HealthWidgetComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float ZoomedTargetArmLength = 150.f;
