@@ -12,4 +12,5 @@ With the gamepad (tested with XBox controller), use left thumbstick to move your
 The game is won if you destroy all the enemy shooter characters, without your healthbar reaching zero. If your healthbar reaches zero, the game is lost. After each win/lose condition, the game restarts after 5 seconds.
 
 
-Video with gameplay on Youtube: https://youtu.be/QjpDY1_nz1g
+Video with initial gameplay on Youtube: https://youtu.be/QjpDY1_nz1g
+New video with weapon switching and reloading: https://youtu.be/O1gc4oLai2U
