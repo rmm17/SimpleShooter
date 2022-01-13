@@ -49,6 +49,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetMaxAmmo() const;
 
+	UFUNCTION(BlueprintPure)
+	AWeapon* GetSelectedWeapon() const;
+
 	void Shoot();
 	void Reload();
 	void ReloadComplete();

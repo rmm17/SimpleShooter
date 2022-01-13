@@ -236,6 +236,11 @@ int32 AShooterCharacter::GetMaxAmmo() const
 	return Weapon->GetMaxAmmo();
 }
 
+AWeapon* AShooterCharacter::GetSelectedWeapon() const
+{
+	return Weapon;
+}
+
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
