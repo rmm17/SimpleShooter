@@ -23,16 +23,9 @@ ARocketProjectile::ARocketProjectile()
 	RootComponent = StaticMeshComp;
 
 	ParticleSystemComp = CreateDefaultSubobject<UParticleSystemComponent>(SmokeTrailName);
-	RootComponent->SetupAttachment(ParticleSystemComp);
+	ParticleSystemComp->SetupAttachment(RootComponent);
 
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(ProjectileMovName);
-
-
-	if (!ProjectileMovementComp)
-		return;
-
-	ProjectileMovementComp->InitialSpeed = 3000.f;
-	ProjectileMovementComp->MaxSpeed = 3000.f;
 }
 
 // Called when the game starts or when spawned
@@ -59,9 +52,9 @@ void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 
 	UGameplayStatics::ApplyRadialDamage(
 		this,
-		50.f,
+		BaseDamage,
 		ActorLocation,
-		2000.f,
+		DamageRadius,
 		UDamageType::StaticClass(),
 		IgnoreActors,
 		this,
