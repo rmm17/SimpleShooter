@@ -6,8 +6,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "GunDamageType.h"
 
-#define RootName TEXT("Root")
-#define MeshName TEXT("Mesh")
 #define HeadBoneName TEXT("head")
 
 #define OUT
@@ -17,13 +15,6 @@ AGun::AGun()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	Root = CreateDefaultSubobject<USceneComponent>(RootName);
-
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(MeshName);
-	Mesh->SetupAttachment(Root);
-
-	SetRootComponent(Root);
 }
 
 // Called when the game starts or when spawned
@@ -39,18 +30,23 @@ void AGun::Tick(float DeltaTime)
 
 }
 
-void AGun::PullTrigger()
+bool AGun::PullTrigger()
 {
+	bool bSuccess = Super::PullTrigger();
+
 	FHitResult Hit;
 	FVector ShotDirection;
 
+	if (!bSuccess)
+		return false;
+
 	AController* OwnerController = GetOwnerController();
 	if (!OwnerController)
-		return;
+		return false;
 
 	GenerateMuzzleEffects();
 
-	if (GunTrace(OUT Hit, OUT ShotDirection)) {
+	if (AimTrace(OUT Hit, OUT ShotDirection)) {
 		GenerateImpactEffects(Hit.Location, ShotDirection.Rotation());
 
 		if (auto ActorHit = Hit.GetActor())
@@ -73,27 +69,8 @@ void AGun::PullTrigger()
 			ActorHit->TakeDamage(DamageTaken, DamageEvent, OwnerController, this);
 		}
 	}
-}
 
-bool AGun::GunTrace(FHitResult& Hit, FVector& ShotDirection)
-{
-	FVector StartLocation;
-	FRotator StartRotation;
-
-	AController* OwnerController = GetOwnerController();
-	if (!OwnerController)
-		return false;
-
-	OwnerController->GetPlayerViewPoint(OUT StartLocation, OUT StartRotation);
-	ShotDirection = -StartRotation.Vector();
-
-	FVector End = StartLocation + StartRotation.Vector() * MaxRange;
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(GetOwner());
-
-	return GetWorld()->LineTraceSingleByChannel(OUT Hit, StartLocation, End, ECollisionChannel::ECC_GameTraceChannel1, Params);
+	return true;
 }
 
 void AGun::GenerateMuzzleEffects() const
@@ -112,14 +89,5 @@ void AGun::GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation
 
 	if (ImpactSound)
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactLocation);
-}
-
-AController* AGun::GetOwnerController() const
-{
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
-		return nullptr;
-
-	return OwnerPawn->GetController();
 }
 

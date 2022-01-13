@@ -3,9 +3,13 @@
 
 #include "ShooterCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gun.h"
 #include "GunDamageType.h"
+#include "HealthWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "RocketLauncher.h"
 #include "SimpleShooterGameModeBase.h"
 
 #define MoveForwardBinding TEXT("MoveForward")
@@ -16,10 +20,17 @@
 #define LookRightRateBinding TEXT("LookRightRate")
 #define JumpBinding TEXT("Jump")
 #define ShootBinding TEXT("Shoot")
+#define ReloadBinding TEXT("Reload")
+#define SelectWeapon1Binding TEXT("SelectWeapon1")
+#define SelectWeapon2Binding TEXT("SelectWeapon2")
+#define SelectWeaponScroll TEXT("SelectWeaponScroll")
 #define ZoomBinding TEXT("Zoom")
 #define GamepadZoomBinding TEXT("GamepadZoom")
 
 #define WeaponSocketName TEXT("WeaponSocket")
+
+#define GunIndex 0
+#define RocketLauncherIndex 1
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()
@@ -34,21 +45,16 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetupWeaponList();
+
 	Health = MaxHealth;
-
-	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
-
-	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
-	
-	if (Gun)
-	{
-		Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
-		Gun->SetOwner(this);
-	}
 
 	SpringArmPtr = FindComponentByClass<USpringArmComponent>();
 	if (SpringArmPtr)
 		OriginalTargetArmLength = SpringArmPtr->TargetArmLength;
+
+	HealthWidgetComp = FindComponentByClass<UWidgetComponent>();
+	UpdateHealthWidget();
 }
 
 // Called every frame
@@ -61,6 +67,29 @@ void AShooterCharacter::Tick(float DeltaTime)
 			SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, ZoomedTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
 		else SpringArmPtr->TargetArmLength = FMath::FInterpTo(SpringArmPtr->TargetArmLength, OriginalTargetArmLength, DeltaTime, ZoomInterpolationSpeed);
 	}
+
+	RotateHealthWidget();
+}
+
+// Called to prepare weapons available to the player at the start of game
+void AShooterCharacter::SetupWeaponList()
+{
+	WeaponList.Add(GunIndex, GetWorld()->SpawnActor<AGun>(GunClass));
+	WeaponList.Add(RocketLauncherIndex, GetWorld()->SpawnActor<ARocketLauncher>(RocketLauncherClass));
+
+	GetMesh()->HideBoneByName(TEXT("weapon_r"), PBO_None);
+
+	for (TPair<int32, AWeapon*> Element : WeaponList)
+	{
+		if (!Element.Value)
+			continue;
+
+		Element.Value->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
+		Element.Value->SetOwner(this);
+		Element.Value->SetActorHiddenInGame(Element.Key != 0);
+	}
+
+	Weapon = WeaponList[0];
 }
 
 // Called to bind functionality to input
@@ -76,6 +105,12 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(LookRightRateBinding, this, &AShooterCharacter::LookRightRate);
 	PlayerInputComponent->BindAction(JumpBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::JumpAction);
 	PlayerInputComponent->BindAction(ShootBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
+	PlayerInputComponent->BindAction(ReloadBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Reload);
+
+	DECLARE_DELEGATE_OneParam(FSelectWeaponDelegate, const int32)
+	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon1Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, GunIndex);
+	PlayerInputComponent->BindAction<FSelectWeaponDelegate>(SelectWeapon2Binding, EInputEvent::IE_Pressed, this, &AShooterCharacter::SelectWeapon, RocketLauncherIndex);
+	PlayerInputComponent->BindAxis(SelectWeaponScroll, this, &AShooterCharacter::SelectWeaponWithScroll);
 	
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Pressed, this, &AShooterCharacter::Zoom);
 	PlayerInputComponent->BindAction(ZoomBinding, EInputEvent::IE_Released, this, &AShooterCharacter::Unzoom);
@@ -120,10 +155,66 @@ void AShooterCharacter::JumpAction()
 
 void AShooterCharacter::Shoot()
 {
-	if (!Gun)
+	if (!Weapon)
 		return;
 
-	Gun->PullTrigger();
+	Weapon->PullTrigger();
+}
+
+void AShooterCharacter::Reload()
+{
+	if (!Weapon)
+		return;
+
+	if (bIsReloading || Weapon->GetCurrentAmmo() == Weapon->GetMaxAmmo())
+		return;
+	
+	bIsReloading = true;
+
+	DisableInput(UGameplayStatics::GetPlayerController(this, 0));
+
+	GetWorld()->GetTimerManager().SetTimer(
+		OUT ReloadTimer, 
+		this, 
+		&AShooterCharacter::ReloadComplete,
+		Weapon->GetReloadTime(),
+		false
+	);
+}
+
+void AShooterCharacter::ReloadComplete()
+{
+	bIsReloading = false;
+
+	EnableInput(UGameplayStatics::GetPlayerController(this, 0));
+
+	if (!Weapon)
+		return;
+
+	Weapon->Reload();
+}
+
+void AShooterCharacter::SelectWeapon(int32 Index)
+{
+	if (Weapon)
+		Weapon->SetActorHiddenInGame(true);
+
+	Weapon = WeaponList[Index];
+	
+	if (Weapon)
+		Weapon->SetActorHiddenInGame(false);
+}
+
+void AShooterCharacter::SelectWeaponWithScroll(float AxisValue)
+{
+	if (!Weapon)
+		return;
+
+	const int32* Index = WeaponList.FindKey(Weapon);
+
+	uint32 NewIndex = FMath::Abs((*Index + FMath::CeilToInt(AxisValue)) % WeaponList.Num());
+
+	SelectWeapon(NewIndex);
 }
 
 void AShooterCharacter::Zoom()
@@ -146,19 +237,50 @@ bool AShooterCharacter::IsDead() const
 	return Health <= 0;
 }
 
+bool AShooterCharacter::IsReloading() const
+{
+	return bIsReloading;
+}
+
 float AShooterCharacter::GetHealthPercent() const
 {
 	return Health / MaxHealth;
+}
+
+int32 AShooterCharacter::GetCurrentAmmo() const
+{
+	if (!Weapon)
+		return 0;
+
+	return Weapon->GetCurrentAmmo();
+}
+
+int32 AShooterCharacter::GetMaxAmmo() const
+{
+	if (!Weapon)
+		return 0;
+
+	return Weapon->GetMaxAmmo();
+}
+
+AWeapon* AShooterCharacter::GetSelectedWeapon() const
+{
+	return Weapon;
 }
 
 float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	UE_LOG(LogTemp, Warning, TEXT("Damage to apply: %f"), DamageToApply);
+	//UE_LOG(LogTemp, Warning, TEXT("Take Damage: Actor %s damaged by %f"), *this->GetName(), DamageToApply);
+
+	if (DamageToApply <= 0)
+		return 0;
 
 	DamageToApply = FMath::Min(Health, DamageToApply);
 	Health -= DamageToApply;
+
+	UpdateHealthWidget();
 
 	CheckIfDead(DamageEvent);
 
@@ -178,4 +300,39 @@ void AShooterCharacter::CheckIfDead(FDamageEvent const& DamageEvent)
 		DetachFromControllerPendingDestroy();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
+
+void AShooterCharacter::UpdateHealthWidget()
+{
+	if (!HealthWidgetComp)
+		return;
+
+	UHealthWidget* HealthWidget = Cast<UHealthWidget>(HealthWidgetComp->GetUserWidgetObject());
+
+	if (HealthWidget)
+	{
+		float HealthPercent = GetHealthPercent();
+		HealthWidget->UpdateHealthPercent(HealthPercent);
+
+		HealthWidgetComp->SetHiddenInGame(HealthPercent <= 0.f);
+	}
+}
+
+void AShooterCharacter::RotateHealthWidget()
+{
+	if (!HealthWidgetComp)
+		return;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	
+	if (!PlayerController)
+		return;
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PlayerController->GetPlayerViewPoint(OUT CameraLocation, OUT CameraRotation);
+
+	FVector ToTarget = CameraLocation - HealthWidgetComp->GetComponentLocation();
+	FRotator LookAtRotation = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
+	HealthWidgetComp->SetWorldRotation(LookAtRotation);
 }

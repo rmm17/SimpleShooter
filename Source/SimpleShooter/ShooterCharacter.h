@@ -7,6 +7,8 @@
 #include "ShooterCharacter.generated.h"
 
 class AGun;
+class ARocketLauncher;
+class AWeapon;
 
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
@@ -28,6 +30,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	//BlueprintPure removes the execution pin on the blueprint and implies that we are not making changes to the game state in this function. 
@@ -35,11 +38,26 @@ public:
 	bool IsDead() const;
 
 	UFUNCTION(BlueprintPure)
+	bool IsReloading() const;
+
+	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
 
+	UFUNCTION(BlueprintPure)
+	int32 GetCurrentAmmo() const;
+
+	UFUNCTION(BlueprintPure)
+	int32 GetMaxAmmo() const;
+
+	UFUNCTION(BlueprintPure)
+	AWeapon* GetSelectedWeapon() const;
+
 	void Shoot();
+	void Reload();
+	void ReloadComplete();
 
 private:
+	void SetupWeaponList();
 	void MoveForward(float AxisValue);
 	void LookUp(float AxisValue);
 	void LookUpRate(float AxisValue);
@@ -47,10 +65,14 @@ private:
 	void LookRight(float AxisValue);
 	void LookRightRate(float AxisValue);
 	void JumpAction();
+	void SelectWeapon(int32 Index);
+	void SelectWeaponWithScroll(float AxisValue);
 	void Zoom();
 	void Unzoom();
 	void GamepadZoom();
 	void CheckIfDead(FDamageEvent const& DamageEvent);
+	void UpdateHealthWidget();
+	void RotateHealthWidget();
 
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 100.f;
@@ -64,11 +86,19 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AGun> GunClass;
 
+	UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<ARocketLauncher> RocketLauncherClass;
+
 	UPROPERTY()
-	AGun* Gun;
+	AWeapon* Weapon;
+
+	TMap<int32, AWeapon*> WeaponList;
 
 	UPROPERTY()
 	class USpringArmComponent* SpringArmPtr;
+
+	UPROPERTY()
+	class UWidgetComponent* HealthWidgetComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float ZoomedTargetArmLength = 150.f;
@@ -80,4 +110,8 @@ private:
 	float OriginalTargetArmLength = 0.f; // used only to store the original target arm length from the SpringArmComponent, for unzooming
 
 	bool bIsZoomPressed = false;
+
+	bool bIsReloading = false;
+
+	FTimerHandle ReloadTimer;
 };

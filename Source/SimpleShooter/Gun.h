@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Weapon.h"
 #include "Gun.generated.h"
 
 UCLASS()
-class SIMPLESHOOTER_API AGun : public AActor
+class SIMPLESHOOTER_API AGun : public AWeapon
 {
 	GENERATED_BODY()
 	
@@ -15,7 +16,7 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	void PullTrigger();
+	virtual bool PullTrigger() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,13 +27,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class USceneComponent* Root;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	class USkeletalMeshComponent* Mesh;
-
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class UParticleSystem* MuzzleFlash;
 	
@@ -49,16 +43,11 @@ private:
 	class TSubclassOf<class UDamageType> HeadShotDamageTypeClass;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float MaxRange = 3000.f;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
 	float RegularDamage = 20.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float HeadShotDamage = 100.f;
 
-	bool GunTrace(FHitResult& Hit, FVector& ShotDirection);
 	void GenerateMuzzleEffects() const;
 	void GenerateImpactEffects(FVector ImpactLocation, FRotator ImpactRotation) const;
-	class AController* GetOwnerController() const;
 };
